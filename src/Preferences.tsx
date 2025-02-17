@@ -1,9 +1,14 @@
 import { Action, ActionPanel, Form, useNavigation, LocalStorage, showToast, Toast } from "@raycast/api";
 
-export function Preferences() {
+interface PreferencesProps {
+  apiKeySet: () => void;
+}
+
+export function Preferences( { apiKeySet }: PreferencesProps) {
+
   const { pop } = useNavigation();
 
-  async function handleSubmitApiKey(values: { apiKey: string }) {
+  async function handleSubmitApiKey(values: { apiKey:string }) {
     try {
       await LocalStorage.setItem("apiKey", values.apiKey);
       await showToast({ 
@@ -11,6 +16,9 @@ export function Preferences() {
         title: "API Key saved successfully",
         message: "You can now use the plugin" 
       });
+    
+      apiKeySet();
+
       pop();
     } catch (error) {
       await showToast({ 

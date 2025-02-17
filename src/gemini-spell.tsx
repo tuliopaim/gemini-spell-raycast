@@ -4,8 +4,6 @@ import {
     Toast,
     showToast,
     LocalStorage,
-    Action,
-    ActionPanel,
 } from "@raycast/api";
 import { WelcomePage } from "./WelcomePage";
 import { ErrorDisplay } from "./ErrorDisplay";
@@ -43,6 +41,7 @@ export default function Command() {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isWaitingForEnter, setIsWaitingForEnter] = useState(true);
+    const [hasApiKey, setHasApiKey] = useState(false);
     const { push } = useNavigation();
 
     async function processText() {
@@ -50,7 +49,7 @@ export default function Command() {
             const apiKey = await LocalStorage.getItem("apiKey");
             if (!apiKey) {
                 console.log("API key is not set. Redirecting to preferences.");
-                push(<Preferences />);
+                push(<Preferences apiKeySet={setHasApiKeyTrue} />);
                 return;
             }
 
@@ -105,7 +104,7 @@ export default function Command() {
                 <TextComparison
                     originalText={currentSelectedText}
                     correctedText={correctedTextResponse}
-                    onEditApiKey={() => push(<Preferences />)}
+                    onEditApiKey={() => push(<Preferences apiKeySet={setHasApiKeyTrue}/>)}
                 />
             );
 
@@ -124,16 +123,35 @@ export default function Command() {
     }
 
     useEffect(() => {
-        // Clear global state on component mount
-        clearGlobalState();
-        setIsLoading(false);
+        async function init() {
+            // Clear global state on component mount
+            clearGlobalState();
+            
+            // Check for API key
+            const apiKey = await LocalStorage.getItem("apiKey");
+            setHasApiKey(!!apiKey);
+            setIsLoading(false);
+        }
+        init();
     }, []);
+
+    function setHasApiKeyTrue() {
+        setHasApiKey(true);
+    }
 
     if (error) {
         return <ErrorDisplay 
             isLoading={isLoading} 
             errorMessage={error} 
-            onEditApiKey={() => push(<Preferences />)} 
+            onEditApiKey={() => push(<Preferences apiKeySet={setHasApiKeyTrue} />)} 
+        />;
+    }
+
+    if (!hasApiKey) {
+        return <ErrorDisplay 
+            isLoading={isLoading} 
+            errorMessage="API Key is not set, please set it in preferences" 
+            onEditApiKey={() => push(<Preferences apiKeySet={setHasApiKeyTrue} />)} 
         />;
     }
 
@@ -141,7 +159,7 @@ export default function Command() {
         return (
             <WelcomePage 
                 isLoading={isLoading} 
-                onEditApiKey={() => push(<Preferences />)}
+                onEditApiKey={() => push(<Preferences apiKeySet={setHasApiKeyTrue} />)}
                 onEnterPress={() => {
                     setIsWaitingForEnter(false);
                     setIsLoading(true);
@@ -151,5 +169,5 @@ export default function Command() {
         );
     }
 
-    return <WelcomePage isLoading={isLoading} onEditApiKey={() => push(<Preferences />)} />;
+    return <WelcomePage isLoading={isLoading} onEditApiKey={() => push(<Preferences apiKeySet={setHasApiKeyTrue} />)} />;
 }

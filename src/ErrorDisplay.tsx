@@ -8,15 +8,13 @@ interface ErrorDisplayProps {
 
 export function ErrorDisplay({ isLoading, errorMessage, onEditApiKey }: ErrorDisplayProps) {
 
-    const markdown = `## Gemini Spell Checker
-
-      Error: ${errorMessage}
-      
-      Select some text in any application and run this command to check spelling and grammar.`;
-
     return (
         <Detail
-            markdown={markdown}
+            markdown={`
+## Gemini Spell Checker.
+
+- ⚠️ ${errorMessage} 
+`}
             isLoading={isLoading}
             actions={
                 <ActionPanel>
